@@ -1,37 +1,106 @@
-// importScripts("https://www.gstatic.com/firebasejs/7.9.1/firebase-app.js");
-// importScripts("https://www.gstatic.com/firebasejs/7.9.1/firebase-messaging.js");
+// Import Firebase v9+ modules
+importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
 
-// eslint-disable-next-line no-undef
-importScripts('https://www.gstatic.com/firebasejs/8.8.0/firebase-app.js');
-// eslint-disable-next-line no-undef
-importScripts('https://www.gstatic.com/firebasejs/8.8.0/firebase-messaging.js');
+let firebaseConfig = null;
+let messaging = null;
 
-firebase.initializeApp({
-  apiKey: "AIzaSyBHHy68eC-VlbKwc5C853k7GrkvrbjXfx0",
-  authDomain: "csharp-firestore-2022.firebaseapp.com",
-  projectId: "csharp-firestore-2022",
-  storageBucket: "csharp-firestore-2022.appspot.com",
-  messagingSenderId: "331246389959",
-  appId: "1:331246389959:web:5767805a19cb971e2a8ce2",
-  measurementId: "G-PKS62DN4ED"
+// Listen for config from main thread
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'FIREBASE_CONFIG') {
+    firebaseConfig = event.data.config;
+    initializeFirebase();
+  }
 });
 
-const messaging = firebase.messaging();
-// firebase.messaging().getToken({
-//   vapidKey: 'BJXINwEV_YGUdQ8ZM25UseO15QE6D5q6jUIuoRdAeichZ0VP-i-UmBn4pIH5JzHhQBmYOrI67MIMyzyfUU0Yd08'
-//     }).then(token=>{
-//       console.log(token);
-// });
+// Try to get config from IndexedDB on service worker activation
+async function getConfigFromIndexedDB() {
+  return new Promise((resolve) => {
+    const request = indexedDB.open('localforage', 1);
+    request.onsuccess = (event) => {
+      const db = event.target.result;
+      const transaction = db.transaction(['keyvaluepairs'], 'readonly');
+      const store = transaction.objectStore('keyvaluepairs');
+      const getRequest = store.get('firebase_config');
+      
+      getRequest.onsuccess = () => {
+        resolve(getRequest.result || null);
+      };
+      
+      getRequest.onerror = () => {
+        resolve(null);
+      };
+    };
+    
+    request.onerror = () => {
+      resolve(null);
+    };
+  });
+}
 
-messaging.onBackgroundMessage((payload) => {
-  console.log(
+// Initialize Firebase with config
+async function initializeFirebase() {
+  if (!firebaseConfig) {
+    // Try to get from IndexedDB
+    const config = await getConfigFromIndexedDB();
+    if (config) {
+      firebaseConfig = config;
+    } else {
+      console.warn('[firebase-messaging-sw.js] Firebase config not found');
+      return;
+    }
+  }
+
+  if (!firebase.apps || firebase.apps.length === 0) {
+    firebase.initializeApp({
+      apiKey: firebaseConfig.apiKey,
+      authDomain: firebaseConfig.authDomain,
+      projectId: firebaseConfig.projectId,
+      storageBucket: firebaseConfig.storageBucket || `${firebaseConfig.projectId}.appspot.com`,
+      messagingSenderId: firebaseConfig.messagingSenderId,
+      appId: firebaseConfig.appId,
+      measurementId: firebaseConfig.measurementId
+    });
+  }
+
+  messaging = firebase.messaging();
+
+  messaging.onBackgroundMessage((payload) => {
+    console.log(
       '[firebase-messaging-sw.js] Received background message ',
       payload
-  );
-  const notificationTitle = payload.notification.title;
-  const notificationOptions = {
-    body: payload.notification.body,
-    icon: './logo.png',
-  };
-  self.registration.showNotification(notificationTitle, notificationOptions);
+    );
+    
+    const notificationTitle = payload.notification?.title || 'New Notification';
+    const notificationOptions = {
+      body: payload.notification?.body || '',
+      icon: payload.notification?.icon || '/favicon.ico',
+      badge: '/favicon.ico',
+      data: payload.data || {},
+      tag: payload.data?.tag || 'notification',
+      requireInteraction: false,
+    };
+
+    self.registration.showNotification(notificationTitle, notificationOptions);
+  });
+
+  // Handle notification clicks
+  self.addEventListener('notificationclick', (event) => {
+    console.log('[firebase-messaging-sw.js] Notification click received.');
+    event.notification.close();
+
+    if (event.notification.data && event.notification.data.url) {
+      event.waitUntil(
+        clients.openWindow(event.notification.data.url)
+      );
+    }
+  });
+}
+
+// Try to initialize on service worker activation
+getConfigFromIndexedDB().then((config) => {
+  if (config) {
+    firebaseConfig = config;
+    initializeFirebase();
+  }
 });
