@@ -71,10 +71,15 @@ const firebaseCloudMessaging = {
         }
 
         // Get new token from Firebase
-        const fcm_token = await getToken(messaging, {
+        const tokenOptions = {
           vapidKey: config.vapidKey,
-          serviceWorkerRegistration: serviceWorkerRegistration,
-        });
+        };
+        
+        if (serviceWorkerRegistration) {
+          tokenOptions.serviceWorkerRegistration = serviceWorkerRegistration;
+        }
+
+        const fcm_token = await getToken(messaging, tokenOptions);
 
         // Set token in our local storage
         if (fcm_token) {
