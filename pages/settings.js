@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import PushNotificationLayout from '../components/PushNotificationLayout';
 import FirebaseConfigForm from '../components/FirebaseConfigForm';
+import localforage from 'localforage';
 
 export default function Settings() {
   const [hasConfig, setHasConfig] = useState(false);
@@ -11,7 +12,6 @@ export default function Settings() {
 
   const checkConfig = async () => {
     try {
-      const localforage = (await import('localforage')).default;
       const config = await localforage.getItem('firebase_config');
       setHasConfig(!!config);
     } catch (error) {
