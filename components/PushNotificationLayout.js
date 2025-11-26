@@ -17,7 +17,10 @@ function PushNotificationLayout({ children }) {
   const sendConfigToServiceWorker = async (config) => {
     if ("serviceWorker" in navigator) {
       try {
-        // Wait for service worker to be ready (next-offline handles registration)
+        // Register service worker explicitly
+        await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+        
+        // Wait for service worker to be ready
         const registration = await navigator.serviceWorker.ready;
         
         // Send config to service worker
