@@ -19,6 +19,28 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
   const [token, setToken] = useState(null);
   const pasteAreaRef = useRef(null);
 
+  const isServiceAccountJson = (obj) => {
+    if (!obj || typeof obj !== 'object') return false;
+    return (
+      obj.type === 'service_account' ||
+      'private_key' in obj ||
+      'client_email' in obj ||
+      'private_key_id' in obj
+    );
+  };
+
+  const looksLikeWebConfig = (obj) => {
+    if (!obj || typeof obj !== 'object') return false;
+    // Firebase Web App config typically contains these keys
+    return (
+      typeof obj.apiKey === 'string' ||
+      typeof obj.authDomain === 'string' ||
+      typeof obj.messagingSenderId === 'string' ||
+      typeof obj.appId === 'string' ||
+      typeof obj.projectId === 'string'
+    );
+  };
+
   useEffect(() => {
     loadSavedConfig();
   }, []);
@@ -138,39 +160,68 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
   };
 
   const handlePaste = async (e) => {
-    e.preventDefault();
     const pastedText = (e.clipboardData || window.clipboardData).getData('text');
-    
-    setIsPasting(true);
-    
-    setTimeout(() => {
-      const parsedConfig = parsePastedConfig(pastedText);
-      
-      if (parsedConfig && Object.keys(parsedConfig).length > 0) {
-        // Map the parsed config to our form fields
-        const mappedConfig = {
-          apiKey: parsedConfig.apiKey || parsedConfig.apiKey || '',
-          authDomain: parsedConfig.authDomain || '',
-          projectId: parsedConfig.projectId || '',
-          storageBucket: parsedConfig.storageBucket || '',
-          messagingSenderId: parsedConfig.messagingSenderId || '',
-          appId: parsedConfig.appId || '',
-          measurementId: parsedConfig.measurementId || '',
-          vapidKey: config.vapidKey // Keep existing VAPID key
-        };
 
+    // Try to parse and decide if we should intercept this paste.
+    const parsedConfig = parsePastedConfig(pastedText);
+
+    // If it's not parseable or doesn't look like Firebase Web config, allow normal paste behavior.
+    if (!parsedConfig) return;
+
+    // Service account JSON should never be used client-side.
+    if (isServiceAccountJson(parsedConfig)) {
+      // Let it paste (so user doesn't lose clipboard), but warn clearly.
+      toast.error(
+        'This looks like a Firebase Service Account key (private_key). Do NOT paste this here. Use Firebase Web App config (apiKey/authDomain/...).'
+      );
+      return;
+    }
+
+    // Only intercept for Firebase Web App config JSON.
+    if (!looksLikeWebConfig(parsedConfig)) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    setIsPasting(true);
+    const pasteTarget = e.target;
+
+    setTimeout(() => {
+      // Map the parsed config to our form fields
+      const mappedConfig = {
+        apiKey: parsedConfig.apiKey || '',
+        authDomain: parsedConfig.authDomain || '',
+        projectId: parsedConfig.projectId || '',
+        storageBucket: parsedConfig.storageBucket || '',
+        messagingSenderId: parsedConfig.messagingSenderId || '',
+        appId: parsedConfig.appId || '',
+        measurementId: parsedConfig.measurementId || '',
+        vapidKey: config.vapidKey // Keep existing VAPID key
+      };
+
+      const hasAnyMappedValue = Object.entries(mappedConfig).some(
+        ([key, value]) => key === 'vapidKey' ? false : Boolean(value)
+      );
+
+      if (hasAnyMappedValue) {
         setConfig(prev => ({ ...prev, ...mappedConfig }));
         toast.success('Configuration auto-filled from clipboard!');
+
+        // Clear the paste area only if it was pasted in the textarea
+        if (pasteTarget === pasteAreaRef.current && pasteAreaRef.current) {
+          pasteAreaRef.current.value = '';
+        }
       } else {
-        toast.error('Could not parse configuration. Please paste valid Firebase config.');
+        toast.error('Could not find Firebase Web App config keys (apiKey/authDomain/...).');
       }
-      
+
       setIsPasting(false);
     }, 100);
   };
 
   const handlePasteAreaClick = () => {
     pasteAreaRef.current?.focus();
+    pasteAreaRef.current?.select();
   };
 
   const handleChange = (e) => {
@@ -267,11 +318,7 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
         {/* Paste Area */}
         <div className="mb-8">
           <div
-            ref={pasteAreaRef}
-            onPaste={handlePaste}
-            onClick={handlePasteAreaClick}
-            className="relative bg-white rounded-xl shadow-lg border-2 border-dashed border-blue-300 p-6 cursor-text hover:border-blue-400 transition-all duration-200"
-            tabIndex={0}
+            className="relative bg-white rounded-xl shadow-lg border-2 border-dashed border-blue-300 p-6 hover:border-blue-400 transition-all duration-200"
           >
             <div className="text-center">
               <svg
@@ -291,10 +338,18 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
                 Quick Paste
               </h3>
               <p className="text-sm text-gray-600 mb-4">
-                Click here and paste your Firebase config object (Ctrl+V / Cmd+V)
+                Paste your Firebase config object anywhere (works in any field below too!)
               </p>
+              <textarea
+                ref={pasteAreaRef}
+                onPaste={handlePaste}
+                onClick={handlePasteAreaClick}
+                placeholder="Paste your Firebase config here..."
+                className="w-full h-24 px-4 py-3 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 outline-none resize-none text-sm font-mono"
+                style={{ minHeight: '60px' }}
+              />
               {isPasting && (
-                <div className="inline-flex items-center text-blue-600">
+                <div className="inline-flex items-center text-blue-600 mt-2">
                   <svg className="animate-spin h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
@@ -308,7 +363,7 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
 
         {/* Form */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} onPaste={handlePaste} className="space-y-6">
             {/* API Key */}
             <div>
               <label htmlFor="apiKey" className="block text-sm font-semibold text-gray-700 mb-2">
@@ -320,6 +375,7 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
                 name="apiKey"
                 value={config.apiKey}
                 onChange={handleChange}
+                onPaste={handlePaste}
                 required
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 outline-none"
                 placeholder="AIzaSy..."
@@ -337,6 +393,7 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
                 name="authDomain"
                 value={config.authDomain}
                 onChange={handleChange}
+                onPaste={handlePaste}
                 required
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 outline-none"
                 placeholder="your-project.firebaseapp.com"
@@ -354,6 +411,7 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
                 name="projectId"
                 value={config.projectId}
                 onChange={handleChange}
+                onPaste={handlePaste}
                 required
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 outline-none"
                 placeholder="your-project-id"
@@ -371,6 +429,7 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
                 name="storageBucket"
                 value={config.storageBucket}
                 onChange={handleChange}
+                onPaste={handlePaste}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 outline-none"
                 placeholder="your-project.appspot.com"
               />
@@ -387,6 +446,7 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
                 name="messagingSenderId"
                 value={config.messagingSenderId}
                 onChange={handleChange}
+                onPaste={handlePaste}
                 required
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 outline-none"
                 placeholder="123456789012"
@@ -404,6 +464,7 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
                 name="appId"
                 value={config.appId}
                 onChange={handleChange}
+                onPaste={handlePaste}
                 required
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 outline-none"
                 placeholder="1:123456789012:web:abc123"
@@ -421,6 +482,7 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
                 name="measurementId"
                 value={config.measurementId}
                 onChange={handleChange}
+                onPaste={handlePaste}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 outline-none"
                 placeholder="G-XXXXXXXXXX"
               />
@@ -437,6 +499,7 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
                 name="vapidKey"
                 value={config.vapidKey}
                 onChange={handleChange}
+                onPaste={handlePaste}
                 required
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 outline-none"
                 placeholder="BK..."
