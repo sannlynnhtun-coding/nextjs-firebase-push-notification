@@ -86,28 +86,49 @@ export default function Home() {
                 </div>
                 <div className="ml-3 flex-1">
                   <h3 className="text-lg font-semibold text-green-800 mb-2">
-                    Firebase Configured
+                    Firebase Configured ✓
                   </h3>
                   <p className="text-green-700 mb-4">
                     Your Firebase configuration is set up. You can now receive push notifications.
                   </p>
                   
-                  {token && (
-                    <div className="bg-white rounded-lg p-4 mt-4 border border-green-200">
-                      <p className="text-sm font-semibold text-gray-700 mb-2">
-                        FCM Token:
-                      </p>
+                  {token ? (
+                    <div className="bg-white rounded-lg p-5 mt-4 border-2 border-green-300 shadow-md">
+                      <div className="flex items-center justify-between mb-3">
+                        <p className="text-base font-bold text-gray-900 flex items-center">
+                          <svg className="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                          </svg>
+                          Your FCM Token
+                        </p>
+                      </div>
                       <div
                         onClick={copyToken}
-                        className="bg-gray-50 border border-gray-200 rounded-lg p-3 cursor-pointer hover:bg-gray-100 transition-colors duration-200 group"
+                        className="bg-gradient-to-r from-gray-50 to-blue-50 border-2 border-green-200 rounded-lg p-4 cursor-pointer hover:from-gray-100 hover:to-blue-100 transition-all duration-200 group shadow-sm"
                         title="Click to copy"
                       >
-                        <code className="text-xs text-gray-800 break-all block font-mono">
+                        <code className="text-sm text-gray-800 break-all block font-mono leading-relaxed">
                           {token}
                         </code>
                       </div>
-                      <p className="text-xs text-gray-600 mt-3">
-                        💡 Click the token above to copy it. Use this token in Firebase Console to send test notifications.
+                      <div className="mt-4 flex items-start bg-green-50 rounded-lg p-3 border border-green-200">
+                        <svg className="w-5 h-5 text-green-600 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                        </svg>
+                        <p className="text-sm text-green-800">
+                          <strong>Click the token above to copy it.</strong> Use this in Firebase Console → Cloud Messaging → Send test message.
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-yellow-50 rounded-lg p-4 mt-4 border border-yellow-300">
+                      <p className="text-sm text-yellow-800 flex items-start">
+                        <svg className="w-5 h-5 text-yellow-600 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                        <span>
+                          <strong>FCM Token not generated yet.</strong> Please refresh the page or check the <Link href="/settings" className="underline font-semibold">Settings page</Link> to view your token.
+                        </span>
                       </p>
                     </div>
                   )}

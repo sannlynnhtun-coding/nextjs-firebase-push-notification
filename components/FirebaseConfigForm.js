@@ -312,8 +312,43 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
           </p>
         </div>
 
-          {/* Token Display Area - Only shown if token exists */}
-
+        {/* Token Display Area - Shown at top if token exists */}
+        {token && (
+          <div className="mb-8 bg-green-50 border-2 border-green-300 rounded-xl p-6 shadow-lg">
+            <div className="flex items-start justify-between mb-3">
+              <h3 className="text-xl font-bold text-green-900 flex items-center">
+                <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Your FCM Token
+              </h3>
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                readOnly
+                value={token}
+                onClick={(e) => e.target.select()}
+                className="flex-1 px-4 py-3 border-2 border-green-300 rounded-lg bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 font-mono text-sm cursor-text select-all"
+              />
+              <button
+                type="button"
+                onClick={copyToken}
+                className="px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors duration-200 flex items-center whitespace-nowrap"
+              >
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                Copy Token
+              </button>
+            </div>
+            <div className="mt-3 p-3 bg-green-100 rounded-lg">
+              <p className="text-sm text-green-800">
+                <strong>✓ Configuration Active!</strong> Use this token to send test notifications from Firebase Console → Cloud Messaging → Send test message.
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Paste Area */}
         <div className="mb-8">
