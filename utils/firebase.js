@@ -92,7 +92,18 @@ const firebaseCloudMessaging = {
       }
     } catch (error) {
       console.error("Firebase initialization error:", error);
-      return null;
+      
+      // Provide helpful error messages
+      if (error.code === 'messaging/token-subscribe-failed') {
+        console.error("❌ Failed to subscribe to FCM. Possible causes:");
+        console.error("1. Check your internet connection");
+        console.error("2. Verify Firebase Cloud Messaging API is enabled in Firebase Console");
+        console.error("3. Check if firewall/VPN is blocking fcmregistrations.googleapis.com");
+        console.error("4. Verify your Firebase project ID is correct:", config.projectId);
+        console.error("5. Make sure you're using the correct Firebase Web App config (not service account)");
+      }
+      
+      throw error; // Re-throw to show toast message
     }
   },
 
