@@ -22,16 +22,16 @@ async function getConfigFromIndexedDB() {
       const transaction = db.transaction(['keyvaluepairs'], 'readonly');
       const store = transaction.objectStore('keyvaluepairs');
       const getRequest = store.get('firebase_config');
-      
+
       getRequest.onsuccess = () => {
         resolve(getRequest.result || null);
       };
-      
+
       getRequest.onerror = () => {
         resolve(null);
       };
     };
-    
+
     request.onerror = () => {
       resolve(null);
     };
@@ -65,12 +65,49 @@ async function initializeFirebase() {
 
   messaging = firebase.messaging();
 
+  // Save message to history in IndexedDB (same as localforage)
+  async function saveMessageToIndexedDB(payload) {
+    return new Promise((resolve) => {
+      const request = indexedDB.open('localforage', 1);
+      request.onsuccess = (event) => {
+        const db = event.target.result;
+        const transaction = db.transaction(['keyvaluepairs'], 'readwrite');
+        const store = transaction.objectStore('keyvaluepairs');
+        const getRequest = store.get('notification_history');
+
+        getRequest.onsuccess = () => {
+          const history = getRequest.result || [];
+          const newMessage = {
+            id: Date.now(),
+            title: payload.notification?.title || "No Title",
+            body: payload.notification?.body || "No Body",
+            data: payload.data || {},
+            timestamp: new Date().toISOString(),
+            receivedAt: "Background"
+          };
+
+          const updatedHistory = [newMessage, ...history].slice(0, 50);
+          const putRequest = store.put(updatedHistory, 'notification_history');
+          putRequest.onsuccess = () => resolve();
+          putRequest.onerror = () => resolve();
+        };
+
+        getRequest.onerror = () => resolve();
+      };
+
+      request.onerror = () => resolve();
+    });
+  }
+
   messaging.onBackgroundMessage((payload) => {
     console.log(
       '[firebase-messaging-sw.js] Received background message ',
       payload
     );
-    
+
+    // Save to IndexedDB
+    saveMessageToIndexedDB(payload);
+
     const notificationTitle = payload.notification?.title || 'New Notification';
     const notificationOptions = {
       body: payload.notification?.body || '',
@@ -82,6 +119,17 @@ async function initializeFirebase() {
     };
 
     self.registration.showNotification(notificationTitle, notificationOptions);
+
+    // Notify all active clients (tabs) to show a toast
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+      for (const client of windowClients) {
+        client.postMessage({
+          firebaseMessaging: {
+            payload: payload
+          }
+        });
+      }
+    });
   });
 
   // Handle notification clicks

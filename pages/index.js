@@ -8,10 +8,35 @@ export default function Home() {
   const [hasConfig, setHasConfig] = useState(false);
   const [token, setToken] = useState(null);
 
+  const [history, setHistory] = useState([]);
+
   useEffect(() => {
     checkConfig();
     loadToken();
+    loadHistory();
   }, []);
+
+  const loadHistory = async () => {
+    try {
+      const savedHistory = await localforage.getItem("notification_history");
+      if (savedHistory) {
+        setHistory(savedHistory);
+      }
+    } catch (error) {
+      console.error("Error loading history:", error);
+    }
+  };
+
+  const clearHistory = async () => {
+    try {
+      await localforage.removeItem("notification_history");
+      setHistory([]);
+      toast.info("History cleared");
+    } catch (error) {
+      console.error("Error clearing history:", error);
+    }
+  };
+  // ... (omitting existing return to find correct insertion point)
 
   const checkConfig = async () => {
     try {
@@ -37,7 +62,7 @@ export default function Home() {
   };
 
   return (
-    <PushNotificationLayout>
+    <PushNotificationLayout onNotificationReceived={loadHistory}>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
@@ -91,7 +116,7 @@ export default function Home() {
                   <p className="text-green-700 mb-4">
                     Your Firebase configuration is set up. You can now receive push notifications.
                   </p>
-                  
+
                   {token ? (
                     <div className="bg-white rounded-lg p-5 mt-4 border-2 border-green-300 shadow-md">
                       <div className="flex items-center justify-between mb-3">
@@ -171,6 +196,64 @@ export default function Home() {
                 <span className="font-semibold">You should receive the notification in this app!</span>
               </li>
             </ol>
+          </div>
+
+          {/* Notification History */}
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-8 mb-8">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+                <svg className="h-6 w-6 text-indigo-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Notification History
+              </h2>
+              {history.length > 0 && (
+                <button
+                  onClick={clearHistory}
+                  className="text-sm text-red-600 hover:text-red-800 font-medium transition-colors"
+                >
+                  Clear History
+                </button>
+              )}
+            </div>
+
+            {history.length === 0 ? (
+              <div className="text-center py-10 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
+                <p className="text-gray-500">No notifications received yet.</p>
+                <p className="text-sm text-gray-400 mt-1">Sent messages will appear here once saved to IndexedDB.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {history.map((msg) => (
+                  <div key={msg.id} className="p-4 rounded-lg bg-gray-50 border border-gray-200 hover:border-indigo-300 transition-all duration-200">
+                    <div className="flex justify-between items-start mb-1">
+                      <h3 className="font-bold text-gray-900">{msg.title}</h3>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${msg.receivedAt === 'Foreground' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
+                        {msg.receivedAt}
+                      </span>
+                    </div>
+                    <p className="text-gray-700 text-sm mb-2">{msg.body}</p>
+                    <div className="flex justify-between items-center text-[11px] text-gray-500">
+                      <span>{new Date(msg.timestamp).toLocaleString()}</span>
+                      {msg.data?.url && (
+                        <Link href={msg.data.url} className="text-indigo-600 hover:underline font-medium">
+                          View Link
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="mt-6 flex items-start bg-indigo-50 rounded-lg p-3 border border-indigo-200">
+              <svg className="w-5 h-5 text-indigo-600 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+              <p className="text-sm text-indigo-800">
+                Messages are automatically persisted in <strong>IndexedDB</strong> via <code>localforage</code>, ensuring they remain available even after page reloads.
+              </p>
+            </div>
           </div>
 
           {/* Action Buttons */}
