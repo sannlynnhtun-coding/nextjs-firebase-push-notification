@@ -9,10 +9,38 @@ function PushNotificationLayout({ children, onNotificationReceived }) {
   const router = useRouter();
   const [token, setToken] = useState(null);
   const [hasConfig, setHasConfig] = useState(false);
+  const [isDark, setIsDark] = useState(true);
 
   useEffect(() => {
     checkConfigAndInit();
   }, []);
+
+  useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem("theme");
+      const root = document.documentElement;
+
+      if (stored === "light") root.classList.remove("dark");
+      else root.classList.add("dark");
+
+      setIsDark(root.classList.contains("dark"));
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const root = document.documentElement;
+    const nextIsDark = !root.classList.contains("dark");
+    root.classList.toggle("dark", nextIsDark);
+    setIsDark(nextIsDark);
+
+    try {
+      window.localStorage.setItem("theme", nextIsDark ? "dark" : "light");
+    } catch {
+      // ignore
+    }
+  };
 
   const sendConfigToServiceWorker = async (config) => {
     if ("serviceWorker" in navigator) {
@@ -208,7 +236,7 @@ function PushNotificationLayout({ children, onNotificationReceived }) {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <nav className="bg-white shadow-sm border-b border-gray-200">
+      <nav className="bg-background shadow-sm border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex">
@@ -221,18 +249,56 @@ function PushNotificationLayout({ children, onNotificationReceived }) {
                 </Link>
               </div>
               <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-                <Link href="/" className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${router.pathname === '/' ? 'border-primary text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'}`}>
+                <Link href="/" className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${router.pathname === '/' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:border-border hover:text-foreground'}`}>
                   Home
                 </Link>
-                <Link href="/settings" className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${router.pathname === '/settings' ? 'border-primary text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'}`}>
+                <Link href="/settings" className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${router.pathname === '/settings' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:border-border hover:text-foreground'}`}>
                   Settings
                 </Link>
               </div>
             </div>
-            <div className="flex items-center sm:hidden">
-              <div className="space-x-4">
-                <Link href="/" className="text-gray-500 hover:text-gray-700">Home</Link>
-                <Link href="/settings" className="text-gray-500 hover:text-gray-700">Settings</Link>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="inline-flex items-center justify-center rounded-md border border-border bg-muted/40 hover:bg-muted px-2.5 py-2 text-sm font-medium text-foreground transition-colors"
+                aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
+                title={isDark ? "Light mode" : "Dark mode"}
+              >
+                {isDark ? (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path
+                      d="M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12Z"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path d="M12 2v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                    <path d="M12 20v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                    <path d="M4.93 4.93l1.41 1.41" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                    <path d="M17.66 17.66l1.41 1.41" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                    <path d="M2 12h2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                    <path d="M20 12h2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                    <path d="M4.93 19.07l1.41-1.41" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                    <path d="M17.66 6.34l1.41-1.41" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                  </svg>
+                ) : (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path
+                      d="M21 12.8A8.5 8.5 0 1 1 11.2 3a6.5 6.5 0 0 0 9.8 9.8Z"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                )}
+              </button>
+
+              <div className="sm:hidden space-x-4">
+                <Link href="/" className="text-muted-foreground hover:text-foreground">Home</Link>
+                <Link href="/settings" className="text-muted-foreground hover:text-foreground">Settings</Link>
               </div>
             </div>
           </div>
