@@ -300,23 +300,23 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/50 to-warning/20 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+          <h1 className="text-4xl font-bold text-foreground mb-2">
             Firebase Configuration
           </h1>
-          <p className="text-gray-600 text-lg">
+          <p className="text-muted-foreground text-lg">
             Configure your Firebase project settings for push notifications
           </p>
         </div>
 
         {/* Token Display Area - Shown at top if token exists */}
         {token && (
-          <div className="mb-8 bg-green-50 border-2 border-green-300 rounded-xl p-6 shadow-lg">
+          <div className="mb-8 bg-success/10 border-2 border-success/30 rounded-xl p-6 shadow-lg">
             <div className="flex items-start justify-between mb-3">
-              <h3 className="text-xl font-bold text-green-900 flex items-center">
+              <h3 className="text-xl font-bold text-foreground flex items-center">
                 <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -329,12 +329,12 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
                 readOnly
                 value={token}
                 onClick={(e) => e.target.select()}
-                className="flex-1 px-4 py-3 border-2 border-green-300 rounded-lg bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 font-mono text-sm cursor-text select-all"
+                className="flex-1 px-4 py-3 border-2 border-success/30 rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring font-mono text-sm cursor-text select-all"
               />
               <button
                 type="button"
                 onClick={copyToken}
-                className="px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors duration-200 flex items-center whitespace-nowrap"
+                className="px-6 py-3 bg-success text-success-foreground font-semibold rounded-lg hover:bg-success/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-colors duration-200 flex items-center whitespace-nowrap"
               >
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -342,8 +342,8 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
                 Copy Token
               </button>
             </div>
-            <div className="mt-3 p-3 bg-green-100 rounded-lg">
-              <p className="text-sm text-green-800">
+            <div className="mt-3 p-3 bg-success/10 rounded-lg border border-success/20">
+              <p className="text-sm text-foreground">
                 <strong>✓ Configuration Active!</strong> Use this token to send test notifications from Firebase Console → Cloud Messaging → Send test message.
               </p>
             </div>
@@ -353,11 +353,11 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
         {/* Paste Area */}
         <div className="mb-8">
           <div
-            className="relative bg-white rounded-xl shadow-lg border-2 border-dashed border-blue-300 p-6 hover:border-blue-400 transition-all duration-200"
+            className="relative bg-card text-card-foreground rounded-xl shadow-lg border-2 border-dashed border-primary/40 p-6 hover:border-primary/60 transition-all duration-200"
           >
             <div className="text-center">
               <svg
-                className="mx-auto h-12 w-12 text-blue-400 mb-4"
+                className="mx-auto h-12 w-12 text-primary/70 mb-4"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -380,11 +380,11 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
                 onPaste={handlePaste}
                 onClick={handlePasteAreaClick}
                 placeholder="Paste your Firebase config here..."
-                className="w-full h-24 px-4 py-3 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 outline-none resize-none text-sm font-mono"
+                className="w-full h-24 px-4 py-3 border border-input rounded-lg bg-background text-foreground focus:ring-2 focus:ring-ring focus:border-transparent transition-all duration-200 outline-none resize-none text-sm font-mono"
                 style={{ minHeight: '60px' }}
               />
               {isPasting && (
-                <div className="inline-flex items-center text-blue-600 mt-2">
+                <div className="inline-flex items-center text-primary mt-2">
                   <svg className="animate-spin h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
@@ -397,11 +397,11 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
         </div>
 
         {/* Form */}
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8">
+        <div className="bg-card text-card-foreground rounded-2xl shadow-xl border border-border p-8">
           <form onSubmit={handleSubmit} onPaste={handlePaste} className="space-y-6">
             {/* API Key */}
             <div>
-              <label htmlFor="apiKey" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="apiKey" className="block text-sm font-semibold text-foreground mb-2">
                 API Key <span className="text-red-500">*</span>
               </label>
               <input
@@ -412,14 +412,14 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
                 onChange={handleChange}
                 onPaste={handlePaste}
                 required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 outline-none"
+                className="w-full px-4 py-3 border border-input rounded-lg bg-background text-foreground focus:ring-2 focus:ring-ring focus:border-transparent transition-all duration-200 outline-none"
                 placeholder="AIzaSy..."
               />
             </div>
 
             {/* Auth Domain */}
             <div>
-              <label htmlFor="authDomain" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="authDomain" className="block text-sm font-semibold text-foreground mb-2">
                 Auth Domain <span className="text-red-500">*</span>
               </label>
               <input
@@ -430,14 +430,14 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
                 onChange={handleChange}
                 onPaste={handlePaste}
                 required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 outline-none"
+                className="w-full px-4 py-3 border border-input rounded-lg bg-background text-foreground focus:ring-2 focus:ring-ring focus:border-transparent transition-all duration-200 outline-none"
                 placeholder="your-project.firebaseapp.com"
               />
             </div>
 
             {/* Project ID */}
             <div>
-              <label htmlFor="projectId" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="projectId" className="block text-sm font-semibold text-foreground mb-2">
                 Project ID <span className="text-red-500">*</span>
               </label>
               <input
@@ -448,14 +448,14 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
                 onChange={handleChange}
                 onPaste={handlePaste}
                 required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 outline-none"
+                className="w-full px-4 py-3 border border-input rounded-lg bg-background text-foreground focus:ring-2 focus:ring-ring focus:border-transparent transition-all duration-200 outline-none"
                 placeholder="your-project-id"
               />
             </div>
 
             {/* Storage Bucket */}
             <div>
-              <label htmlFor="storageBucket" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="storageBucket" className="block text-sm font-semibold text-foreground mb-2">
                 Storage Bucket
               </label>
               <input
@@ -465,14 +465,14 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
                 value={config.storageBucket}
                 onChange={handleChange}
                 onPaste={handlePaste}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 outline-none"
+                className="w-full px-4 py-3 border border-input rounded-lg bg-background text-foreground focus:ring-2 focus:ring-ring focus:border-transparent transition-all duration-200 outline-none"
                 placeholder="your-project.appspot.com"
               />
             </div>
 
             {/* Messaging Sender ID */}
             <div>
-              <label htmlFor="messagingSenderId" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="messagingSenderId" className="block text-sm font-semibold text-foreground mb-2">
                 Messaging Sender ID <span className="text-red-500">*</span>
               </label>
               <input
@@ -483,14 +483,14 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
                 onChange={handleChange}
                 onPaste={handlePaste}
                 required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 outline-none"
+                className="w-full px-4 py-3 border border-input rounded-lg bg-background text-foreground focus:ring-2 focus:ring-ring focus:border-transparent transition-all duration-200 outline-none"
                 placeholder="123456789012"
               />
             </div>
 
             {/* App ID */}
             <div>
-              <label htmlFor="appId" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="appId" className="block text-sm font-semibold text-foreground mb-2">
                 App ID <span className="text-red-500">*</span>
               </label>
               <input
@@ -501,14 +501,14 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
                 onChange={handleChange}
                 onPaste={handlePaste}
                 required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 outline-none"
+                className="w-full px-4 py-3 border border-input rounded-lg bg-background text-foreground focus:ring-2 focus:ring-ring focus:border-transparent transition-all duration-200 outline-none"
                 placeholder="1:123456789012:web:abc123"
               />
             </div>
 
             {/* Measurement ID */}
             <div>
-              <label htmlFor="measurementId" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="measurementId" className="block text-sm font-semibold text-foreground mb-2">
                 Measurement ID <span className="text-gray-500 text-xs">(Optional)</span>
               </label>
               <input
@@ -518,14 +518,14 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
                 value={config.measurementId}
                 onChange={handleChange}
                 onPaste={handlePaste}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 outline-none"
+                className="w-full px-4 py-3 border border-input rounded-lg bg-background text-foreground focus:ring-2 focus:ring-ring focus:border-transparent transition-all duration-200 outline-none"
                 placeholder="G-XXXXXXXXXX"
               />
             </div>
 
             {/* VAPID Key */}
             <div>
-              <label htmlFor="vapidKey" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="vapidKey" className="block text-sm font-semibold text-foreground mb-2">
                 VAPID Key <span className="text-red-500">*</span>
               </label>
               <input
@@ -536,7 +536,7 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
                 onChange={handleChange}
                 onPaste={handlePaste}
                 required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 outline-none"
+                className="w-full px-4 py-3 border border-input rounded-lg bg-background text-foreground focus:ring-2 focus:ring-ring focus:border-transparent transition-all duration-200 outline-none"
                 placeholder="BK..."
               />
               <p className="mt-2 text-xs text-gray-500">
@@ -548,14 +548,14 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
             <div className="flex gap-4 pt-4">
               <button
                 type="submit"
-                className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold py-3 px-6 rounded-lg hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                className="flex-1 bg-primary text-primary-foreground font-semibold py-3 px-6 rounded-lg hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
               >
                 Save Configuration
               </button>
               <button
                 type="button"
                 onClick={handleClear}
-                className="px-6 py-3 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl"
+                className="px-6 py-3 bg-destructive text-destructive-foreground font-semibold rounded-lg hover:bg-destructive/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl"
               >
                 Clear
               </button>
@@ -564,8 +564,8 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
 
           {/* Token Display Area - Moved below buttons */}
           {token && (
-            <div className="mt-8 bg-green-50 border border-green-200 rounded-xl p-6 shadow-sm animate-fade-in">
-              <h3 className="text-lg font-semibold text-green-900 mb-3 flex items-center">
+            <div className="mt-8 bg-success/10 border border-success/20 rounded-xl p-6 shadow-sm animate-fade-in">
+              <h3 className="text-lg font-semibold text-foreground mb-3 flex items-center">
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -576,12 +576,12 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
                   type="text"
                   readOnly
                   value={token}
-                  className="flex-1 px-4 py-2 border border-green-300 rounded-lg bg-white text-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500 font-mono text-sm cursor-text"
+                  className="flex-1 px-4 py-2 border border-success/30 rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring font-mono text-sm cursor-text"
                 />
                 <button
                   type="button"
                   onClick={copyToken}
-                  className="px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors duration-200 flex items-center"
+                  className="px-4 py-2 bg-success text-success-foreground font-semibold rounded-lg hover:bg-success/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-colors duration-200 flex items-center"
                 >
                   <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -589,7 +589,7 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
                 Copy
                 </button>
               </div>
-              <p className="mt-2 text-xs text-green-700">
+              <p className="mt-2 text-xs text-muted-foreground">
                 Use this token in the Firebase Console to send test notifications to this browser.
               </p>
             </div>
@@ -597,14 +597,14 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
         </div>
 
         {/* Info Box */}
-        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="mt-6 bg-info/10 border border-info/20 rounded-lg p-4">
           <div className="flex">
-            <svg className="h-5 w-5 text-blue-400 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+            <svg className="h-5 w-5 text-info mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
             </svg>
-            <div className="text-sm text-blue-800">
+            <div className="text-sm text-foreground">
               <p className="font-semibold mb-1">Where to find these values:</p>
-              <p>Go to <a href="https://console.firebase.google.com/" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-900">Firebase Console</a> → Project Settings → General → Your apps → Web app config</p>
+              <p>Go to <a href="https://console.firebase.google.com/" target="_blank" rel="noopener noreferrer" className="underline hover:text-info">Firebase Console</a> → Project Settings → General → Your apps → Web app config</p>
             </div>
           </div>
         </div>

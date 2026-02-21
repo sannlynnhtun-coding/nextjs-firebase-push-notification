@@ -3,12 +3,99 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    /* Firebase Brand Guidelines colors */
+    --primary: 34 100% 50%; /* #FF9100 */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 46 100% 50%; /* #FFC400 */
+    --accent-foreground: 222.2 84% 4.9%;
+
+    --destructive: 12 100% 43%; /* #DD2C00 */
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 34 100% 50%;
+
+    --radius: 0.75rem;
+
+    /* Custom semantic tokens (non-shadcn defaults) */
+    --warning: 46 100% 50%; /* #FFC400 */
+    --warning-foreground: 222.2 84% 4.9%;
+
+    --info: 217 89% 61%; /* #4285F4 */
+    --info-foreground: 0 0% 100%;
+
+    --success: 136 53% 43%; /* #34A853 */
+    --success-foreground: 0 0% 100%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 34 100% 50%;
+    --primary-foreground: 222.2 84% 4.9%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 46 100% 50%;
+    --accent-foreground: 222.2 84% 4.9%;
+
+    --destructive: 12 100% 43%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 34 100% 50%;
+
+    --warning: 46 100% 50%;
+    --warning-foreground: 222.2 84% 4.9%;
+
+    --info: 217 89% 61%;
+    --info-foreground: 222.2 84% 4.9%;
+
+    --success: 136 53% 43%;
+    --success-foreground: 222.2 84% 4.9%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
   html,
   body {
     padding: 0;
     margin: 0;
     font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
       Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+    @apply bg-background text-foreground;
   }
 
   a {

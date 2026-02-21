@@ -111,8 +111,8 @@ async function initializeFirebase() {
     const notificationTitle = payload.notification?.title || 'New Notification';
     const notificationOptions = {
       body: payload.notification?.body || '',
-      icon: payload.notification?.icon || '/favicon.ico',
-      badge: '/favicon.ico',
+      icon: payload.notification?.icon || '/icon-192.png',
+      badge: '/favicon-32x32.png',
       data: payload.data || {},
       tag: payload.data?.tag || 'notification',
       requireInteraction: false,

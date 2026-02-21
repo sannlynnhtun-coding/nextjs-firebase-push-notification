@@ -154,8 +154,8 @@ function PushNotificationLayout({ children, onNotificationReceived }) {
         {icon ? (
           <img src={icon} alt="" className="w-10 h-10 rounded-lg shadow-sm" />
         ) : (
-          <div className={`w-10 h-10 rounded-lg flex items-center justify-center shadow-sm ${type === 'Background' ? 'bg-purple-100' : 'bg-blue-100'}`}>
-            <svg className={`w-6 h-6 ${type === 'Background' ? 'text-purple-600' : 'text-blue-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className={`w-10 h-10 rounded-lg flex items-center justify-center shadow-sm ${type === 'Background' ? 'bg-info/10' : 'bg-primary/10'}`}>
+            <svg className={`w-6 h-6 ${type === 'Background' ? 'text-info' : 'text-primary'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
             </svg>
           </div>
@@ -166,7 +166,7 @@ function PushNotificationLayout({ children, onNotificationReceived }) {
           <p className="text-sm font-bold text-gray-900 truncate">
             {title}
           </p>
-          <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-tighter ${type === 'Background' ? 'bg-purple-50 text-purple-600' : 'bg-blue-50 text-blue-600'}`}>
+          <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-tighter ${type === 'Background' ? 'bg-info/10 text-info' : 'bg-primary/10 text-primary'}`}>
             {type}
           </span>
         </div>
@@ -174,7 +174,7 @@ function PushNotificationLayout({ children, onNotificationReceived }) {
           {body}
         </p>
         {url && (
-          <p className="text-[10px] text-blue-500 mt-1 font-medium group-hover:underline">
+          <p className="text-[10px] text-primary mt-1 font-medium group-hover:underline">
             Click to view details →
           </p>
         )}
@@ -213,13 +213,18 @@ function PushNotificationLayout({ children, onNotificationReceived }) {
           <div className="flex justify-between h-16">
             <div className="flex">
               <div className="flex-shrink-0 flex items-center">
-                <span className="font-bold text-xl text-blue-600">PushDemo</span>
+                <Link href="/" className="inline-flex items-center gap-2">
+                  <img src="/logo.svg" alt="FPND logo" className="h-7 w-7" />
+                  <span className="font-bold text-xl tracking-tight text-primary">
+                    FPND
+                  </span>
+                </Link>
               </div>
               <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-                <Link href="/" className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${router.pathname === '/' ? 'border-blue-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'}`}>
+                <Link href="/" className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${router.pathname === '/' ? 'border-primary text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'}`}>
                   Home
                 </Link>
-                <Link href="/settings" className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${router.pathname === '/settings' ? 'border-blue-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'}`}>
+                <Link href="/settings" className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${router.pathname === '/settings' ? 'border-primary text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'}`}>
                   Settings
                 </Link>
               </div>
