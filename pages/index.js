@@ -3,18 +3,97 @@ import PushNotificationLayout from "../components/PushNotificationLayout";
 import Link from "next/link";
 import localforage from "localforage";
 import { toast } from "react-toastify";
+import { firebaseCloudMessaging } from "../utils/firebase";
 
 export default function Home() {
   const [hasConfig, setHasConfig] = useState(false);
   const [token, setToken] = useState(null);
 
   const [history, setHistory] = useState([]);
+  const [topics, setTopics] = useState([]);
+  const [newTopic, setNewTopic] = useState("");
+  const [isSubscribing, setIsSubscribing] = useState(false);
 
   useEffect(() => {
     checkConfig();
     loadToken();
     loadHistory();
+    loadTopics();
   }, []);
+
+  const loadTopics = async () => {
+    const savedTopics = await firebaseCloudMessaging.getTopics();
+    setTopics(savedTopics);
+  };
+
+  const handleSubscribe = async (e) => {
+    e.preventDefault();
+    if (!newTopic.trim()) return;
+    if (!token) {
+      toast.error("FCM Token not available. Please refresh or check settings.");
+      return;
+    }
+
+    setIsSubscribing(true);
+    try {
+      const config = await localforage.getItem("firebase_config");
+      const response = await fetch("/api/topics", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          token,
+          topic: newTopic.trim(),
+          serviceAccount: config.serviceAccount,
+        }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        const updatedTopics = [...new Set([...topics, newTopic.trim()])];
+        await firebaseCloudMessaging.saveTopics(updatedTopics);
+        setTopics(updatedTopics);
+        setNewTopic("");
+        toast.success(`Subscribed to topic: ${newTopic}`);
+      } else {
+        toast.error(`Subscription failed: ${data.error?.message || "Unknown error"}`);
+      }
+    } catch (error) {
+      console.error("Subscribe Error:", error);
+      toast.error("Failed to subscribe to topic");
+    } finally {
+      setIsSubscribing(false);
+    }
+  };
+
+  const handleUnsubscribe = async (topicName) => {
+    if (!token) return;
+
+    try {
+      const config = await localforage.getItem("firebase_config");
+      const response = await fetch("/api/topics", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          token,
+          topic: topicName,
+          serviceAccount: config.serviceAccount,
+        }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        const updatedTopics = topics.filter((t) => t !== topicName);
+        await firebaseCloudMessaging.saveTopics(updatedTopics);
+        setTopics(updatedTopics);
+        toast.info(`Unsubscribed from topic: ${topicName}`);
+      } else {
+        toast.error(`Unsubscription failed: ${data.error?.message || "Unknown error"}`);
+      }
+    } catch (error) {
+      console.error("Unsubscribe Error:", error);
+      toast.error("Failed to unsubscribe from topic");
+    }
+  };
 
   const loadHistory = async () => {
     try {
@@ -158,6 +237,78 @@ export default function Home() {
                     </div>
                   )}
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Topic Management */}
+          {hasConfig && (
+            <div className="bg-card text-card-foreground rounded-xl shadow-lg border border-border p-8 mb-8">
+              <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center">
+                <svg className="h-6 w-6 text-primary mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                </svg>
+                Manage Topics
+              </h2>
+
+              <form onSubmit={handleSubscribe} className="flex gap-3 mb-6">
+                <input
+                  type="text"
+                  value={newTopic}
+                  onChange={(e) => setNewTopic(e.target.value)}
+                  placeholder="Enter topic name (e.g. news)"
+                  className="flex-1 px-4 py-2 border border-input rounded-lg bg-background text-foreground focus:ring-2 focus:ring-ring focus:border-transparent outline-none transition-all"
+                  disabled={isSubscribing}
+                />
+                <button
+                  type="submit"
+                  disabled={isSubscribing || !newTopic.trim()}
+                  className="bg-primary text-primary-foreground font-semibold py-2 px-6 rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-all flex items-center"
+                >
+                  {isSubscribing ? (
+                    <>
+                      <svg className="animate-spin h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      Subscribing...
+                    </>
+                  ) : (
+                    "Subscribe"
+                  )}
+                </button>
+              </form>
+
+              {topics.length === 0 ? (
+                <div className="text-center py-6 bg-muted/30 rounded-lg border border-dashed border-border">
+                  <p className="text-muted-foreground text-sm">No topics subscribed yet.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {topics.map((topic) => (
+                    <div key={topic} className="flex justify-between items-center p-3 bg-muted/40 border border-border rounded-lg group hover:border-primary/40 transition-all">
+                      <div className="flex items-center">
+                        <span className="w-2 h-2 bg-success rounded-full mr-3"></span>
+                        <span className="font-medium text-foreground">{topic}</span>
+                      </div>
+                      <button
+                        onClick={() => handleUnsubscribe(topic)}
+                        className="text-xs text-destructive hover:font-bold opacity-0 group-hover:opacity-100 transition-all"
+                      >
+                        Unsubscribe
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="mt-6 flex items-start bg-warning/10 rounded-lg p-3 border border-warning/20">
+                <svg className="w-5 h-5 text-warning mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+                <p className="text-sm text-foreground">
+                  <strong>Note:</strong> Topic subscription via the HTTP v1 API requires a <strong>Service Account JSON</strong> to be configured in the Settings page. Topics are also persisted in local storage.
+                </p>
               </div>
             </div>
           )}

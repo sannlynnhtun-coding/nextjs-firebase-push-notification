@@ -12,22 +12,16 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
     messagingSenderId: '',
     appId: '',
     measurementId: '',
-    vapidKey: ''
+    vapidKey: '',
+    serviceAccount: ''
   });
 
   const [isPasting, setIsPasting] = useState(false);
   const [token, setToken] = useState(null);
   const pasteAreaRef = useRef(null);
 
-  const isServiceAccountJson = (obj) => {
-    if (!obj || typeof obj !== 'object') return false;
-    return (
-      obj.type === 'service_account' ||
-      'private_key' in obj ||
-      'client_email' in obj ||
-      'private_key_id' in obj
-    );
-  };
+  // In this new iteration, we actually *do* accept the ServiceAccount key structure.
+  // The user might paste Web Config OR Service Account. It's up to them.
 
   const looksLikeWebConfig = (obj) => {
     if (!obj || typeof obj !== 'object') return false;
@@ -101,7 +95,7 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
       // Manual parsing for key-value pairs
       // Remove curly braces
       cleaned = cleaned.replace(/[{}]/g, '').trim();
-      
+
       // Split by comma, but be careful with quoted strings
       const pairs = [];
       let currentPair = '';
@@ -110,7 +104,7 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
 
       for (let i = 0; i < cleaned.length; i++) {
         const char = cleaned[i];
-        
+
         if ((char === '"' || char === "'") && (i === 0 || cleaned[i - 1] !== '\\')) {
           if (!inQuotes) {
             inQuotes = true;
@@ -120,7 +114,7 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
             quoteChar = '';
           }
         }
-        
+
         if (char === ',' && !inQuotes) {
           if (currentPair.trim()) {
             pairs.push(currentPair.trim());
@@ -130,7 +124,7 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
           currentPair += char;
         }
       }
-      
+
       if (currentPair.trim()) {
         pairs.push(currentPair.trim());
       }
@@ -141,11 +135,11 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
         if (colonIndex > 0) {
           let key = pair.substring(0, colonIndex).trim();
           let value = pair.substring(colonIndex + 1).trim();
-          
+
           // Remove quotes from key and value
           key = key.replace(/^["']|["']$/g, '');
           value = value.replace(/^["']|["']$/g, '');
-          
+
           if (key && value) {
             configObj[key] = value;
           }
@@ -161,6 +155,7 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
 
   const handlePaste = async (e) => {
     const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+    const pasteTarget = e.target;
 
     // Try to parse and decide if we should intercept this paste.
     const parsedConfig = parsePastedConfig(pastedText);
@@ -168,23 +163,26 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
     // If it's not parseable or doesn't look like Firebase Web config, allow normal paste behavior.
     if (!parsedConfig) return;
 
-    // Service account JSON should never be used client-side.
-    if (isServiceAccountJson(parsedConfig)) {
-      // Let it paste (so user doesn't lose clipboard), but warn clearly.
-      toast.error(
-        'This looks like a Firebase Service Account key (private_key). Do NOT paste this here. Use Firebase Web App config (apiKey/authDomain/...).'
-      );
+    // Service account JSON has been shifted from "don't paste this here" 
+    // to "paste it directly into the Service Account box".
+    // Try to parse web config.
+    if (!looksLikeWebConfig(parsedConfig)) {
+      // Maybe they pasted service account JSON into the general drop field.
+      if (parsedConfig && (parsedConfig.type === 'service_account' || 'private_key' in parsedConfig)) {
+        if (pasteTarget && pasteTarget.name === 'serviceAccount') {
+          // Handle normal paste for service account without web config check blocking it over
+          return;
+        }
+        toast.info("Pasted JSON is a Service Account file. Please paste it into the 'Service Account JSON' field.");
+        return;
+      }
       return;
     }
-
-    // Only intercept for Firebase Web App config JSON.
-    if (!looksLikeWebConfig(parsedConfig)) return;
 
     e.preventDefault();
     e.stopPropagation();
 
     setIsPasting(true);
-    const pasteTarget = e.target;
 
     setTimeout(() => {
       // Map the parsed config to our form fields
@@ -196,7 +194,8 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
         messagingSenderId: parsedConfig.messagingSenderId || '',
         appId: parsedConfig.appId || '',
         measurementId: parsedConfig.measurementId || '',
-        vapidKey: config.vapidKey // Keep existing VAPID key
+        vapidKey: config.vapidKey, // Keep existing VAPID key
+        serviceAccount: config.serviceAccount // Keep existing Service Account
       };
 
       const hasAnyMappedValue = Object.entries(mappedConfig).some(
@@ -234,10 +233,10 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     const requiredFields = ['apiKey', 'authDomain', 'projectId', 'messagingSenderId', 'appId', 'vapidKey'];
     const missingFields = requiredFields.filter(field => !config[field]);
-    
+
     if (missingFields.length > 0) {
       toast.error(`Please fill in all required fields: ${missingFields.join(', ')}`);
       return;
@@ -246,14 +245,14 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
     try {
       await localforage.setItem('firebase_config', config);
       toast.success('Firebase configuration saved successfully!');
-      
+
       await localforage.removeItem('fcm_token');
       setToken(null);
-      
+
       if (onConfigSaved) {
         onConfigSaved(config);
       }
-      
+
       // Initialize token immediately after saving config
       try {
         const fcmToken = await firebaseCloudMessaging.init();
@@ -263,7 +262,7 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
       } catch (err) {
         console.error('Error generating token on save:', err);
       }
-      
+
       // Reload to ensure clean Firebase initialization with new config
       setTimeout(() => {
         window.location.reload();
@@ -288,7 +287,8 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
           messagingSenderId: '',
           appId: '',
           measurementId: '',
-          vapidKey: ''
+          vapidKey: '',
+          serviceAccount: ''
         });
         toast.success('Configuration cleared');
         window.location.reload();
@@ -544,6 +544,25 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
               </p>
             </div>
 
+            {/* Service Account JSON */}
+            <div>
+              <label htmlFor="serviceAccount" className="block text-sm font-semibold text-foreground mb-2">
+                Service Account JSON <span className="text-muted-foreground text-xs">(Required for Topics/Messages API)</span>
+              </label>
+              <textarea
+                id="serviceAccount"
+                name="serviceAccount"
+                value={config.serviceAccount}
+                onChange={handleChange}
+                onPaste={handlePaste}
+                className="w-full h-32 px-4 py-3 border border-input rounded-lg bg-background text-foreground focus:ring-2 focus:ring-ring focus:border-transparent transition-all duration-200 outline-none text-sm font-mono"
+                placeholder='{"type": "service_account", "project_id": "...", "private_key": "..."}'
+              />
+              <p className="mt-2 text-xs text-gray-500">
+                Find this in Firebase Console → Project Settings → Service Accounts → Generate new private key. This is kept solely in your browser.
+              </p>
+            </div>
+
             {/* Buttons */}
             <div className="flex gap-4 pt-4">
               <button
@@ -584,9 +603,9 @@ export default function FirebaseConfigForm({ onConfigSaved }) {
                   className="px-4 py-2 bg-success text-success-foreground font-semibold rounded-lg hover:bg-success/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-colors duration-200 flex items-center"
                 >
                   <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                </svg>
-                Copy
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                  Copy
                 </button>
               </div>
               <p className="mt-2 text-xs text-muted-foreground">

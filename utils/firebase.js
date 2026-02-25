@@ -111,6 +111,25 @@ const firebaseCloudMessaging = {
   getMessaging: () => {
     return messaging;
   },
+
+  // Topic Management
+  getTopics: async () => {
+    try {
+      const topics = await localforage.getItem("fcm_subscribed_topics");
+      return topics || [];
+    } catch (error) {
+      console.error("Error getting topics:", error);
+      return [];
+    }
+  },
+
+  saveTopics: async (topics) => {
+    try {
+      await localforage.setItem("fcm_subscribed_topics", topics);
+    } catch (error) {
+      console.error("Error saving topics:", error);
+    }
+  }
 };
 
 export { firebaseCloudMessaging };
