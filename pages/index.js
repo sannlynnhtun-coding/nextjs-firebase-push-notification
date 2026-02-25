@@ -54,6 +54,9 @@ export default function Home() {
         setTopics(updatedTopics);
         setNewTopic("");
         toast.success(`Subscribed to topic: ${newTopic}`);
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
       } else {
         toast.error(`Subscription failed: ${data.error?.message || "Unknown error"}`);
       }
@@ -86,6 +89,9 @@ export default function Home() {
         await firebaseCloudMessaging.saveTopics(updatedTopics);
         setTopics(updatedTopics);
         toast.info(`Unsubscribed from topic: ${topicName}`);
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
       } else {
         toast.error(`Unsubscription failed: ${data.error?.message || "Unknown error"}`);
       }
