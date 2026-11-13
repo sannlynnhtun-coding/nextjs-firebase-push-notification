@@ -32,9 +32,13 @@
   "overrides": {
     "@firebase/firestore": {
       "@grpc/grpc-js": "1.13.6"
+    },
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "11.0.1"
     }
   },
   "resolutions": {
-    "@firebase/firestore/@grpc/grpc-js": "1.13.6"
+    "@firebase/firestore/@grpc/grpc-js": "1.13.6",
+    "@typescript-eslint/typescript-estree/minimatch": "11.0.1"
   }
 }
