@@ -2,164 +2,185 @@
 
 # Next.js Firebase Push Notification Demo
 
-A Next.js application demonstrating Firebase Cloud Messaging (FCM) push notifications with browser-based configuration.
+FPND is a browser dashboard for testing Firebase Cloud Messaging (FCM). Configure a Firebase project, register this browser, copy its device token, and inspect received notifications. The app uses the Next.js Pages Router and stores its workspace data in the browser.
 
-## Features
+[Live app](https://nextjs-firebase-push-notification.vercel.app)
 
-- ✅ **Browser-based Firebase Configuration** - Configure Firebase settings directly from the browser UI
-- ✅ **Firebase 13 Support** - Uses the latest Firebase modular SDK
-- ✅ **Next.js 16** - Upgraded to the latest Next.js version
-- ✅ **Push Notifications** - Receive and display push notifications from Firebase Console
-- ✅ **Service Worker Support** - Background notifications even when the app is closed
-- ✅ **Token Management** - Easy FCM token copying for testing
+## Overview
 
-## Getting Started
+- **Overview (`/`)** shows notification permission, the device token, topic subscriptions, and the latest 50 received messages. You can copy the token and clear local message history.
+- **Settings (`/settings`)** accepts Firebase web configuration and a VAPID public key, with quick paste support. Service-account JSON is optional and used for topic management.
+- **Foreground messages** appear as toast notifications and are saved to history.
+- **Background messages** are handled by a service worker and saved to the same history. Browser notifications depend on browser support, permissions, and operating-system settings; delivery with a fully closed browser is not guaranteed.
+- The responsive dashboard supports light and dark themes.
 
-### Installation
+The JavaScript app uses Next.js 16, React 19, Firebase 13, LocalForage, React Toastify, and Tailwind CSS. An optional .NET 8 console sender is included in `firebase-test-proj/`.
 
-Use Node.js 20.9 or newer. First, install the dependencies:
+## Run locally
+
+Requirements: Node.js 20.9 or newer, npm, a Firebase project with Cloud Messaging enabled, and a browser supporting Firebase web messaging, service workers, notifications, and IndexedDB. Use localhost for development or HTTPS when hosted.
 
 ```bash
 npm install
-# or
-yarn install
+npm run dev
 ```
 
-### Running the Development Server
+Open [http://localhost:3001](http://localhost:3001). Firebase configuration is entered through Settings; no environment variables are required for this workflow.
+
+For a production build:
 
 ```bash
-npm run dev
-# or
-yarn dev
+npm run build
+npm start
 ```
 
-Open [http://localhost:3001](http://localhost:3001) with your browser to see the result.
+The production server also listens on port 3001.
 
-## Firebase Configuration
+## Setup and testing workflow
 
-### Step 1: Get Firebase Configuration
+### 1. Configure your Firebase project
 
-1. Go to [Firebase Console](https://console.firebase.google.com/)
-2. Create a new project or select an existing one
-3. Navigate to **Project Settings** → **General** tab
-4. Scroll down to **Your apps** section
-5. Click on the **Web app** icon (</>) to add a web app if you haven't already
-6. Copy the Firebase configuration values:
-   - API Key
-   - Auth Domain
-   - Project ID
-   - Storage Bucket
-   - Messaging Sender ID
-   - App ID
-   - Measurement ID (optional)
+In [Firebase Console](https://console.firebase.google.com/), open your project settings and register or select a web app. Copy its Firebase web configuration. Under Cloud Messaging, obtain or generate the public key from Web Push certificates.
 
-### Step 2: Get VAPID Key
+Open **Settings** in FPND and paste the web configuration or enter the fields manually:
 
-1. In Firebase Console, go to **Project Settings** → **Cloud Messaging** tab
-2. Scroll down to **Web Push certificates** section
-3. If no key exists, click **Generate key pair**
-4. Copy the **Key pair** value (this is your VAPID key)
+| Field | Required | Purpose |
+| --- | --- | --- |
+| `apiKey` | Yes | Firebase web API key |
+| `authDomain` | Yes | Firebase authentication domain |
+| `projectId` | Yes | Firebase project identifier |
+| `messagingSenderId` | Yes | FCM sender identifier |
+| `appId` | Yes | Firebase web app identifier |
+| `vapidKey` | Yes | Web Push public key |
+| `storageBucket` | No | Storage bucket; defaults to `<projectId>.appspot.com` |
+| `measurementId` | No | Analytics measurement identifier |
+| `serviceAccount` | No | Service-account JSON for topic changes only |
 
-### Step 3: Configure in the App
+Select **Save Configuration**. The app saves the settings, removes the cached device token, and reloads to initialize the selected project.
 
-1. Navigate to the **Settings** page (`/settings`) in the app
-2. Fill in all the Firebase configuration fields
-3. Click **Save Configuration**
-4. The app will reload and initialize Firebase with your configuration
+### 2. Register this browser
 
-## Testing Push Notifications
+Return to **Overview**, select **Enable notifications**, and allow the browser permission prompt. The app registers `/firebase-messaging-sw.js`, requests an FCM registration token using your VAPID key, and saves the token locally. If permission was already granted, the app also attempts to connect when it loads.
 
-### Method 1: Using Firebase Console
+Copy the token shown in the dashboard. This identifies this browser registration, not a user account.
 
-1. After configuring Firebase, copy your FCM token from the home page
-2. Go to Firebase Console → **Cloud Messaging**
-3. Click **Send test message**
-4. Paste your FCM token in the **FCM registration token** field
-5. Enter a notification title and message
-6. Click **Test**
-7. You should receive the notification in your browser!
+### 3. Send a test notification
 
-### Method 2: Using Firebase Admin SDK
+From Firebase Console's messaging area, compose a notification and use **Send test message** with the copied FCM token.
 
-You can also send notifications programmatically using the Firebase Admin SDK from your backend.
+1. Keep the app visible to check foreground toasts and message history.
+2. Switch to another tab or background the app, then send another message to check the service-worker notification path.
+3. Return to Overview to inspect the saved messages and their foreground/background labels.
 
-## Project Structure
+Alternatively, use the included .NET sender:
 
-```
-├── components/
-│   ├── FirebaseConfigForm.js    # Firebase configuration form component
-│   └── PushNotificationLayout.js # Push notification handler wrapper
-├── pages/
-│   ├── index.js                 # Home page
-│   ├── settings.js              # Firebase configuration page
-│   ├── offers.js                 # Example page with notifications
-│   └── _app.js                  # App wrapper
-├── public/
-│   └── firebase-messaging-sw.js # Service worker for background notifications
-├── utils/
-│   └── firebase.js              # Firebase initialization utilities
-└── next.config.js               # Next.js configuration
+```bash
+cd firebase-test-proj
+dotnet run
 ```
 
-## Technologies Used
+Install the .NET 8 SDK first. Supply your own service-account JSON when prompted, or place it in the console project as `serviceAccountKey.json`. Follow the prompts for a title, body, device token, optional image/click URL, and confirmation. This sender targets a device token. Never commit the credential file.
 
-- **Next.js 16** - React framework
-- **Firebase 10.7+** - Firebase Cloud Messaging
-- **React Toastify** - Toast notifications
-- **LocalForage** - Local storage for configuration and tokens
-- **next-offline** - Service worker support
+### 4. Manage topics (optional)
 
-## Browser Support
+Add service-account JSON for the same Firebase project in **Settings**. Once the browser has a token, enter a topic on Overview and select **Add**; use **Remove** to unsubscribe.
 
-This app requires a browser that supports:
-- Service Workers
-- Push Notifications API
-- IndexedDB (for LocalForage)
+The browser sends `{ token, topic, serviceAccount }` to `/api/topics`: `POST` subscribes and `DELETE` unsubscribes. The API obtains a Google access token and calls Google's topic-management endpoints. The local topic list changes only after a successful response. It is a locally maintained record, not a live query of server subscriptions. Send topic-targeted messages using a separate trusted backend or sender.
 
-Modern browsers (Chrome, Firefox, Edge, Safari 16+) are supported.
+## How messages move through the app
+
+```mermaid
+flowchart TD
+    Settings[Settings: web config and VAPID key] --> Storage[(Browser storage)]
+    Storage --> Init[Initialize Firebase and register service worker]
+    Permission[User grants notification permission] --> Init
+    Init --> Token[Get and save FCM device token]
+    Token --> Sender[Copy token to Firebase Console or .NET sender]
+    Sender --> FCM[Firebase Cloud Messaging]
+    FCM --> Foreground[Visible app: onMessage listener]
+    FCM --> Background[Background: messaging service worker]
+    Foreground --> Toast[Toast notification]
+    Foreground --> History[(Latest 50 messages in IndexedDB)]
+    Background --> Notification[Browser notification]
+    Background --> History
+    History --> Dashboard[Overview message list]
+```
+
+`PushNotificationLayout` attaches the foreground listener and refreshes the dashboard through browser events. The service worker reads configuration from IndexedDB, records background messages, and signals open tabs to refresh. Firebase displays notification payloads automatically; the worker explicitly displays a notification for data-only messages.
+
+## Local data and credential handling
+
+LocalForage stores these keys, normally in IndexedDB:
+
+| Key | Contents |
+| --- | --- |
+| `firebase_config` | Web configuration, VAPID key, and optional service-account JSON |
+| `fcm_token` | Cached browser registration token |
+| `fcm_subscribed_topics` | Locally recorded topic subscriptions |
+| `notification_history` | Latest 50 received messages |
+
+The theme preference is stored separately in localStorage under `theme`. Data belongs to the current browser profile and origin; it is not synchronized between devices.
+
+Clearing configuration removes `firebase_config` and `fcm_token`, while preserving topic records and message history. Clearing history removes only the saved messages. Neither action sends a topic-unsubscribe request. After changing projects or clearing browser data, obtain a fresh token and verify your subscriptions.
+
+**This is a development demo.** Service-account JSON contains a private key: when configured here, it is stored in the browser and sent to this app's server for topic changes. Use test credentials on a trusted device and server. The topic API has no application-level authentication. Production use requires server-side credential storage and authenticated, authorized topic management. Do not commit credentials.
+
+## Project structure
+
+```text
+components/
+  FirebaseConfigForm.js       Settings form, persistence, and reset
+  PushNotificationLayout.js  Shared navigation, themes, and foreground listener
+pages/
+  index.js                   Dashboard, device permission, history, and topics
+  settings.js                Settings page
+  _app.js                    Global styles and application wrapper
+  _document.js               Document metadata and theme initialization
+  api/topics.js              Topic subscribe/unsubscribe endpoint
+  api/hello.js               Sample API endpoint
+public/
+  firebase-messaging-sw.js   Background messaging and history persistence
+  logo.svg                   Master logo; generated assets live alongside it
+utils/
+  firebase.js                Firebase initialization, token, and topic storage
+  notification-url.mjs       URL validation for dashboard message links
+firebase-test-proj/           Optional .NET 8 device-token sender
+scripts/generate-brand.cjs    Branding asset generator
+tests/                       Node tests for URLs, service worker, and branding
+```
+
+## Development workflow
+
+Read [rules.md](rules.md) before changes. Preserve the Pages Router and existing browser storage keys. For Next.js changes, read the relevant installed guides in `node_modules/next/dist/docs/`.
+
+```bash
+npm run lint
+npm test
+npm run build
+```
+
+Keep the Firebase browser dependency and service-worker SDK versions aligned. When changing dependencies, keep dependency manifests and lockfiles consistent. Matching npm overrides and Yarn resolutions currently pin Firestore's transitive `@grpc/grpc-js` dependency to `1.13.6` and the TypeScript ESLint parser's `minimatch` dependency to `11.0.1`. These address upstream security advisories; review and remove each override when its parent dependency supports a patched release.
 
 ## Troubleshooting
 
-### Notifications not working?
+- **No token:** save the web configuration and VAPID public key, enable notifications, and inspect the browser console for initialization errors. The service account cannot replace the web configuration.
+- **Permission denied:** change the site's notification permission in browser settings, then reload and reconnect.
+- **Service worker unavailable:** use HTTPS or localhost and inspect browser DevTools → Application → Service Workers. Check that the worker script and Firebase SDK scripts load successfully.
+- **No background notification:** check browser/OS notification settings, service-worker status, and that the sender uses a current token for the same Firebase project.
+- **Topic request fails:** confirm that Settings includes valid service-account JSON for the intended project, then inspect the `/api/topics` response. A valid device token is also required.
+- **Old messages or topics after changing projects:** these are browser-local records retained independently of configuration. Clear history or review subscriptions as appropriate.
 
-1. Make sure you've granted notification permissions in your browser
-2. Verify your Firebase configuration is correct
-3. Check that your VAPID key is correct
-4. Ensure the service worker is registered (check browser DevTools → Application → Service Workers)
-5. Check the browser console for any errors
+## Branding
 
-### Service Worker not registering?
+The original FPND mark combines a notification bell, message bubble, and unread signal in Firebase orange (`#FF9100`) and amber (`#FFC400`). No external logo artwork was copied; existing project attribution is retained.
 
-1. Make sure you're accessing the app via HTTPS (or localhost for development)
-2. Clear your browser cache and reload
-3. Check browser DevTools → Application → Service Workers for errors
+Edit [public/logo.svg](public/logo.svg), then run `npm run generate:brand` to regenerate the transparent [PNG logo](public/logo.png), favicons, Apple icon, app and maskable icons, monochrome notification badge, and social card. The script uses Sharp installed with Next.js.
 
-## Learn More
+## References
 
-- [Next.js Documentation](https://nextjs.org/docs)
-- [Firebase Cloud Messaging Documentation](https://firebase.google.com/docs/cloud-messaging)
-- [Web Push Notifications Guide](https://web.dev/push-notifications-overview/)
+- [Next.js documentation](https://nextjs.org/docs)
+- [Firebase Cloud Messaging documentation](https://firebase.google.com/docs/cloud-messaging)
 
 ## License
 
 MIT
-
-## Dashboard workflow
-
-Configure your project in Settings, return to Overview, and select **Enable notifications** to connect this browser. The dashboard shows permission state, your device token, topic subscriptions, and the latest 50 received messages. Both themes and mobile layouts are supported; existing browser data is preserved.
-
-Run `npm run lint`, `npm test`, and `npm run build` before sharing changes. Project collaboration rules are in [rules.md](rules.md).
-
-Service-account JSON is stored in the browser and sent to this app's server for topic changes. Use test credentials on a trusted device. Production use needs server-side credential storage and authenticated topic management.
-
-## Dependency security
-
-Firestore currently pins an older gRPC client. The npm override and matching Yarn resolution keep `@grpc/grpc-js` on patched version 1.13.6 for GHSA-m9gg-hp2v-232j. Remove both when Firestore's own dependency range includes a patched release. Keep both lockfiles updated when changing dependencies.
-
-## Branding
-
-The FPND mark combines a notification bell, message bubble, and unread signal in Firebase orange (`#FF9100`) and amber (`#FFC400`). It is an original project-specific vector design; no external logo artwork was copied or additional third-party attribution introduced. Existing project attribution is retained.
-
-The transparent master is [public/logo.svg](public/logo.svg), with a transparent 1024px [PNG export](public/logo.png). Run `npm run generate:brand` after editing the master to regenerate the SVG favicon, 16/32px PNG favicons, 16/32/48px ICO, 180px Apple icon, 192/512px app icons, 512px maskable icon, 96px monochrome notification badge, and 1200×630 social card. The generator uses Sharp already installed by Next.js.
-
-[Live app](https://nextjs-firebase-push-notification.vercel.app)
