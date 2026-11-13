@@ -6,10 +6,10 @@ function MyApp({ Component, pageProps }) {
   return (
     <>
       <Head>
-        <title>FPND</title>
+        <title>FPND · Notification center</title>
         <meta name="application-name" content="FPND" />
         <meta name="theme-color" content="#FF9100" />
-        <meta name="color-scheme" content="dark" />
+        <meta name="color-scheme" content="light dark" />
 
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="icon" href="/favicon.ico" sizes="any" />

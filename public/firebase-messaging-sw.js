@@ -1,13 +1,17 @@
-// Import Firebase v9+ modules
-importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
+// Keep the service-worker SDK version aligned with package.json.
+importScripts(
+  "https://www.gstatic.com/firebasejs/13.3.0/firebase-app-compat.js",
+);
+importScripts(
+  "https://www.gstatic.com/firebasejs/13.3.0/firebase-messaging-compat.js",
+);
 
 let firebaseConfig = null;
 let messaging = null;
 
 // Listen for config from main thread
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'FIREBASE_CONFIG') {
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "FIREBASE_CONFIG") {
     firebaseConfig = event.data.config;
     initializeFirebase();
   }
@@ -16,12 +20,12 @@ self.addEventListener('message', (event) => {
 // Try to get config from IndexedDB on service worker activation
 async function getConfigFromIndexedDB() {
   return new Promise((resolve) => {
-    const request = indexedDB.open('localforage', 1);
+    const request = indexedDB.open("localforage", 1);
     request.onsuccess = (event) => {
       const db = event.target.result;
-      const transaction = db.transaction(['keyvaluepairs'], 'readonly');
-      const store = transaction.objectStore('keyvaluepairs');
-      const getRequest = store.get('firebase_config');
+      const transaction = db.transaction(["keyvaluepairs"], "readonly");
+      const store = transaction.objectStore("keyvaluepairs");
+      const getRequest = store.get("firebase_config");
 
       getRequest.onsuccess = () => {
         resolve(getRequest.result || null);
@@ -46,7 +50,7 @@ async function initializeFirebase() {
     if (config) {
       firebaseConfig = config;
     } else {
-      console.warn('[firebase-messaging-sw.js] Firebase config not found');
+      console.warn("[firebase-messaging-sw.js] Firebase config not found");
       return;
     }
   }
@@ -56,24 +60,27 @@ async function initializeFirebase() {
       apiKey: firebaseConfig.apiKey,
       authDomain: firebaseConfig.authDomain,
       projectId: firebaseConfig.projectId,
-      storageBucket: firebaseConfig.storageBucket || `${firebaseConfig.projectId}.appspot.com`,
+      storageBucket:
+        firebaseConfig.storageBucket ||
+        `${firebaseConfig.projectId}.appspot.com`,
       messagingSenderId: firebaseConfig.messagingSenderId,
       appId: firebaseConfig.appId,
-      measurementId: firebaseConfig.measurementId
+      measurementId: firebaseConfig.measurementId,
     });
   }
 
+  if (messaging) return;
   messaging = firebase.messaging();
 
   // Save message to history in IndexedDB (same as localforage)
   async function saveMessageToIndexedDB(payload) {
     return new Promise((resolve) => {
-      const request = indexedDB.open('localforage', 1);
+      const request = indexedDB.open("localforage", 1);
       request.onsuccess = (event) => {
         const db = event.target.result;
-        const transaction = db.transaction(['keyvaluepairs'], 'readwrite');
-        const store = transaction.objectStore('keyvaluepairs');
-        const getRequest = store.get('notification_history');
+        const transaction = db.transaction(["keyvaluepairs"], "readwrite");
+        const store = transaction.objectStore("keyvaluepairs");
+        const getRequest = store.get("notification_history");
 
         getRequest.onsuccess = () => {
           const history = getRequest.result || [];
@@ -83,12 +90,19 @@ async function initializeFirebase() {
             body: payload.notification?.body || "No Body",
             data: payload.data || {},
             timestamp: new Date().toISOString(),
-            receivedAt: "Background"
+            receivedAt: "Background",
           };
 
           const updatedHistory = [newMessage, ...history].slice(0, 50);
-          const putRequest = store.put(updatedHistory, 'notification_history');
-          putRequest.onsuccess = () => resolve();
+          const putRequest = store.put(updatedHistory, "notification_history");
+          transaction.oncomplete = () => {
+            db.close();
+            resolve();
+          };
+          transaction.onerror = () => {
+            db.close();
+            resolve();
+          };
           putRequest.onerror = () => resolve();
         };
 
@@ -99,48 +113,53 @@ async function initializeFirebase() {
     });
   }
 
-  messaging.onBackgroundMessage((payload) => {
+  messaging.onBackgroundMessage(async (payload) => {
     console.log(
-      '[firebase-messaging-sw.js] Received background message ',
-      payload
+      "[firebase-messaging-sw.js] Received background message ",
+      payload,
     );
 
     // Save to IndexedDB
-    saveMessageToIndexedDB(payload);
+    await saveMessageToIndexedDB(payload);
 
-    const notificationTitle = payload.notification?.title || 'New Notification';
+    const notificationTitle = payload.notification?.title || "New Notification";
     const notificationOptions = {
-      body: payload.notification?.body || '',
-      icon: payload.notification?.icon || '/icon-192.png',
-      badge: '/favicon-32x32.png',
+      body: payload.notification?.body || "",
+      icon: payload.notification?.icon || "/icon-192.png",
+      badge: "/favicon-32x32.png",
       data: payload.data || {},
-      tag: payload.data?.tag || 'notification',
+      tag: payload.data?.tag || "notification",
       requireInteraction: false,
     };
 
-    self.registration.showNotification(notificationTitle, notificationOptions);
+    // Firebase displays notification payloads automatically; only display data-only messages here.
+    if (!payload.notification)
+      await self.registration.showNotification(
+        notificationTitle,
+        notificationOptions,
+      );
 
     // Notify all active clients (tabs) to show a toast
-    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
-      for (const client of windowClients) {
-        client.postMessage({
-          firebaseMessaging: {
-            payload: payload
-          }
-        });
-      }
-    });
+    return self.clients
+      .matchAll({ type: "window", includeUncontrolled: true })
+      .then((windowClients) => {
+        for (const client of windowClients) {
+          client.postMessage({
+            firebaseMessaging: {
+              payload: payload,
+            },
+          });
+        }
+      });
   });
 
   // Handle notification clicks
-  self.addEventListener('notificationclick', (event) => {
-    console.log('[firebase-messaging-sw.js] Notification click received.');
+  self.addEventListener("notificationclick", (event) => {
+    console.log("[firebase-messaging-sw.js] Notification click received.");
     event.notification.close();
 
     if (event.notification.data && event.notification.data.url) {
-      event.waitUntil(
-        clients.openWindow(event.notification.data.url)
-      );
+      event.waitUntil(clients.openWindow(event.notification.data.url));
     }
   });
 }

@@ -5,8 +5,8 @@ A Next.js application demonstrating Firebase Cloud Messaging (FCM) push notifica
 ## Features
 
 - ✅ **Browser-based Firebase Configuration** - Configure Firebase settings directly from the browser UI
-- ✅ **Firebase v10+ Support** - Uses the latest Firebase modular SDK
-- ✅ **Next.js 14** - Upgraded to the latest Next.js version
+- ✅ **Firebase 13 Support** - Uses the latest Firebase modular SDK
+- ✅ **Next.js 16** - Upgraded to the latest Next.js version
 - ✅ **Push Notifications** - Receive and display push notifications from Firebase Console
 - ✅ **Service Worker Support** - Background notifications even when the app is closed
 - ✅ **Token Management** - Easy FCM token copying for testing
@@ -15,7 +15,7 @@ A Next.js application demonstrating Firebase Cloud Messaging (FCM) push notifica
 
 ### Installation
 
-First, install the dependencies:
+Use Node.js 20.9 or newer. First, install the dependencies:
 
 ```bash
 npm install
@@ -31,7 +31,7 @@ npm run dev
 yarn dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3001](http://localhost:3001) with your browser to see the result.
 
 ## Firebase Configuration
 
@@ -101,7 +101,7 @@ You can also send notifications programmatically using the Firebase Admin SDK fr
 
 ## Technologies Used
 
-- **Next.js 14** - React framework
+- **Next.js 16** - React framework
 - **Firebase 10.7+** - Firebase Cloud Messaging
 - **React Toastify** - Toast notifications
 - **LocalForage** - Local storage for configuration and tokens
@@ -141,3 +141,11 @@ Modern browsers (Chrome, Firefox, Edge, Safari 16+) are supported.
 ## License
 
 MIT
+
+## Dashboard workflow
+
+Configure your project in Settings, return to Overview, and select **Enable notifications** to connect this browser. The dashboard shows permission state, your device token, topic subscriptions, and the latest 50 received messages. Both themes and mobile layouts are supported; existing browser data is preserved.
+
+Run `npm run lint`, `npm test`, and `npm run build` before sharing changes. Project collaboration rules are in [rules.md](rules.md).
+
+Service-account JSON is stored in the browser and sent to this app's server for topic changes. Use test credentials on a trusted device. Production use needs server-side credential storage and authenticated topic management.
