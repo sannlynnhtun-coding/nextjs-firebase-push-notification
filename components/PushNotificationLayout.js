@@ -104,7 +104,7 @@ export default function PushNotificationLayout({ children }) {
       <nav className="app-nav" aria-label="Main navigation">
         <div className="nav-inner">
           <Link href="/" className="brand">
-            <Image src="/logo.svg" alt="" width="28" height="28" />
+            <Image src="/logo.svg?v=2" alt="" width="28" height="28" />
             <strong>FPND</strong>
             <span>/ console</span>
           </Link>

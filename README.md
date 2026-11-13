@@ -1,3 +1,5 @@
+<p><img src="public/logo.svg" width="96" height="96" alt="FPND notification bubble logo" /></p>
+
 # Next.js Firebase Push Notification Demo
 
 A Next.js application demonstrating Firebase Cloud Messaging (FCM) push notifications with browser-based configuration.
@@ -153,3 +155,11 @@ Service-account JSON is stored in the browser and sent to this app's server for 
 ## Dependency security
 
 Firestore currently pins an older gRPC client. The npm override and matching Yarn resolution keep `@grpc/grpc-js` on patched version 1.13.6 for GHSA-m9gg-hp2v-232j. Remove both when Firestore's own dependency range includes a patched release. Keep both lockfiles updated when changing dependencies.
+
+## Branding
+
+The FPND mark combines a notification bell, message bubble, and unread signal in Firebase orange (`#FF9100`) and amber (`#FFC400`). It is an original project-specific vector design; no external logo artwork was copied or additional third-party attribution introduced. Existing project attribution is retained.
+
+The transparent master is [public/logo.svg](public/logo.svg), with a transparent 1024px [PNG export](public/logo.png). Run `npm run generate:brand` after editing the master to regenerate the SVG favicon, 16/32px PNG favicons, 16/32/48px ICO, 180px Apple icon, 192/512px app icons, 512px maskable icon, 96px monochrome notification badge, and 1200×630 social card. The generator uses Sharp already installed by Next.js.
+
+[Live app](https://nextjs-firebase-push-notification.vercel.app)
