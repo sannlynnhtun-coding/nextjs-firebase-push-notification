@@ -149,3 +149,7 @@ Configure your project in Settings, return to Overview, and select **Enable noti
 Run `npm run lint`, `npm test`, and `npm run build` before sharing changes. Project collaboration rules are in [rules.md](rules.md).
 
 Service-account JSON is stored in the browser and sent to this app's server for topic changes. Use test credentials on a trusted device. Production use needs server-side credential storage and authenticated topic management.
+
+## Dependency security
+
+Firestore currently pins an older gRPC client. The npm override and matching Yarn resolution keep `@grpc/grpc-js` on patched version 1.13.6 for GHSA-m9gg-hp2v-232j. Remove both when Firestore's own dependency range includes a patched release. Keep both lockfiles updated when changing dependencies.
